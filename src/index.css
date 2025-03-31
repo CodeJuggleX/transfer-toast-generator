@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,32 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .bg-black {
+    background-color: white !important;
+  }
+  
+  .text-white {
+    color: black !important;
+  }
+  
+  .text-gray-400 {
+    color: #666 !important;
+  }
+  
+  .text-elcart-blue {
+    color: #1EAEDB !important;
+  }
+  
+  .print\:hidden {
+    display: none !important;
   }
 }

@@ -19,7 +19,9 @@ const formatSender = (fullName: string): string => {
 
 export const generateReceipt = (formData: ReceiptFormData): Promise<Receipt> => {
   return new Promise((resolve) => {
-    const id = Math.floor(10000000 + Math.random() * 90000000).toString();
+    // Generate a 10-digit receipt number starting with "94"
+    const id = "94" + Math.floor(Math.random() * 10000000000).toString().padStart(8, '0');
+    
     const now = new Date();
     const formattedDate = now.toLocaleString("ru-RU", {
       day: "2-digit",

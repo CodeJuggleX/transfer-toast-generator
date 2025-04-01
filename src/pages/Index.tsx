@@ -8,6 +8,29 @@ import ReceiptForm from "../components/ReceiptForm";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Receipt, ReceiptFormData } from "@/types/receipt";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+
+const formatRecipient = (recipient: string) => {
+  const phonePattern = /^[+]?[0-9]{10,15}$/;
+
+  if (phonePattern.test(recipient)) {
+    return recipient;
+  }
+
+  const nameParts = recipient.trim().split(/\s+/);
+  if (nameParts.length < 2) return recipient; // Если одно слово — возвращаем как есть
+
+  const [firstName, lastName, middleName = ""] = nameParts; // Если нет отчества, ставим пустую строку
+
+  const maskedFirstName = `${firstName.slice(0, 2)}*******`;
+  const maskedLastName = `${lastName.slice(0, 2)}*******`;
+  const maskedMiddleName = middleName ? `${middleName.slice(0, 2)}**` : ""; // Если нет отчества, ничего не добавляем
+
+  return middleName
+    ? `9417 *** *** 0009 (${maskedFirstName} ${maskedLastName} ${maskedMiddleName})`
+    : `9417 *** *** 0009 (${maskedFirstName} ${maskedLastName})`;
+};
 
 const Index = () => {
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -34,6 +57,26 @@ const Index = () => {
   const handleNewReceipt = () => {
     setShowForm(true);
     setReceipt(null);
+  };
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById("receipt-container");
+    if (!element) return;
+
+    html2canvas(element, { scale: 3 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save("receipt.pdf");
+
+      toast({
+        title: "Успешно",
+        description: "Чек успешно сохранен в формате PDF",
+      });
+    });
   };
 
   if (isPending) {
@@ -67,7 +110,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center p-4">
       <PrintButton />
-      <div className="max-w-md w-full flex flex-col">
+      <div id="receipt-container" className="max-w-md w-full flex flex-col bg-black p-4 rounded-lg">
         <ElcartLogo />
         <div className="text-white text-center text-xl font-medium mb-6">
           Чек №{receipt.id}
@@ -85,12 +128,12 @@ const Index = () => {
 
         <div className="mb-4">
           <div className="text-gray-400 text-sm">Отправитель:</div>
-          <div className="text-white text-xl">{receipt.sender}</div>
+          <div className="text-white text-xl whitespace-nowrap">{receipt.sender}</div>
         </div>
 
         <div className="mb-4">
           <div className="text-gray-400 text-sm">Получатель:</div>
-          <div className="text-white text-xl">{receipt.recipient}</div>
+          <div className="text-white text-xl whitespace-nowrap">{formatRecipient(receipt.recipient)}</div>
         </div>
 
         <div className="mb-4">
@@ -144,12 +187,15 @@ const Index = () => {
             <a className="text-elcart-blue" href="https://www.ipc.kg" target="_blank" rel="noopener noreferrer">www.ipc.kg</a>
           </div>
         </div>
-        
-        <div className="mt-8 mb-4 w-full">
-          <Button onClick={handleNewReceipt} className="w-full">
-            Создать новый чек
-          </Button>
-        </div>
+      </div>
+
+      <div className="mt-8 mb-4 w-full max-w-md flex flex-col gap-2">
+        <Button onClick={handleDownloadPDF} className="w-full">
+          Скачать PDF
+        </Button>
+        <Button onClick={handleNewReceipt} className="w-full">
+          Создать новый чек
+        </Button>
       </div>
     </div>
   );

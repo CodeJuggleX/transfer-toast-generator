@@ -63,14 +63,33 @@ const Index = () => {
     const element = document.getElementById("receipt-container");
     if (!element) return;
 
-    html2canvas(element, { scale: 3 }).then((canvas) => {
+    html2canvas(element, { 
+      scale: 3,
+      backgroundColor: "#000000",
+      useCORS: true,
+      logging: false,
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
+    }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = pdfWidth - 20; // 10mm margins on each side
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Center the receipt on the page
+      const x = 10; // 10mm from left edge
+      const y = (pdfHeight - imgHeight) / 2 > 10 ? (pdfHeight - imgHeight) / 2 : 10;
 
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save("receipt.pdf");
+      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+      pdf.save("Элкарт_чек.pdf");
 
       toast({
         title: "Успешно",

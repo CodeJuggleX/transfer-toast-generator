@@ -61,7 +61,13 @@ const Index = () => {
 
   const handleDownloadPDF = () => {
     const element = document.getElementById("receipt-container");
-    if (!element) return;
+    const companyInfo = document.getElementById("company-info");
+    
+    if (!element || !companyInfo) return;
+
+    // First, ensure the company info is visible during capture
+    const originalDisplay = companyInfo.style.display;
+    companyInfo.style.display = "block";
 
     html2canvas(element, { 
       scale: 3,
@@ -90,6 +96,9 @@ const Index = () => {
 
       pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
       pdf.save("Элкарт_чек.pdf");
+
+      // Restore original display setting
+      companyInfo.style.display = originalDisplay;
 
       toast({
         title: "Успешно",
@@ -182,28 +191,28 @@ const Index = () => {
           <StatusBadge status={receipt.status} />
         </div>
 
-        {/* Информация о компании */}
-        <div className="text-gray-400 text-sm mt-6">
+        {/* Информация о компании - переделан в видимый блок для PDF */}
+        <div id="company-info" className="text-gray-400 text-sm mt-6">
           <div>ЗАО Межбанковский процессинговый центр</div>
           <div>720083, Кыргызская Республика</div>
           <div>г. Бишкек, Ауэзова 1/2</div>
-        </div>
-
-        {/* Контактная информация */}
-        <div className="mt-2 text-gray-400 text-sm">
-          <div>
-            Тел.: <a className="text-elcart-blue" href="tel:+996312637696">+996 (312) 63 76 96</a>
-          </div>
-          <div>
-            <a className="text-elcart-blue" href="tel:+996312637697">+996 (312) 63 76 97</a>
-          </div>
-          <div className="flex gap-1">
-            <span>E-mail:</span>
-            <a className="text-elcart-blue" href="mailto:mobile@ipc.kg">mobile@ipc.kg</a>
-          </div>
-          <div className="flex gap-1">
-            <span>Web:</span>
-            <a className="text-elcart-blue" href="https://www.ipc.kg" target="_blank" rel="noopener noreferrer">www.ipc.kg</a>
+          
+          {/* Контактная информация */}
+          <div className="mt-2">
+            <div>
+              Тел.: <a className="text-elcart-blue" href="tel:+996312637696">+996 (312) 63 76 96</a>
+            </div>
+            <div>
+              <a className="text-elcart-blue" href="tel:+996312637697">+996 (312) 63 76 97</a>
+            </div>
+            <div className="flex gap-1">
+              <span>E-mail:</span>
+              <a className="text-elcart-blue" href="mailto:mobile@ipc.kg">mobile@ipc.kg</a>
+            </div>
+            <div className="flex gap-1">
+              <span>Web:</span>
+              <a className="text-elcart-blue" href="https://www.ipc.kg" target="_blank" rel="noopener noreferrer">www.ipc.kg</a>
+            </div>
           </div>
         </div>
       </div>

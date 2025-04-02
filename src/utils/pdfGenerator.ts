@@ -1,7 +1,7 @@
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Toast } from "@/hooks/use-toast";
+import { type Toast } from "@/components/ui/toast";
 
 export const generatePDF = async (
   element: HTMLElement,
@@ -28,6 +28,14 @@ export const generatePDF = async (
       element.style.height = 'auto';
       element.style.maxHeight = 'none';
       element.style.overflow = 'visible';
+      
+      // Ensure text colors are preserved
+      if (element.classList.contains('text-white')) {
+        element.style.color = '#FFFFFF';
+      }
+      if (element.classList.contains('text-gray-400')) {
+        element.style.color = '#9CA3AF';
+      }
     });
 
     const canvas = await html2canvas(receiptClone, { 
@@ -41,6 +49,7 @@ export const generatePDF = async (
         clonedElement.style.height = 'auto';
         clonedElement.style.overflow = 'visible';
         clonedElement.style.position = 'static';
+        clonedElement.style.backgroundColor = '#000000';
       }
     });
     

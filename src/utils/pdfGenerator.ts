@@ -1,11 +1,11 @@
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { type Toast } from "@/components/ui/toast";
+import { type ToastProps } from "@/components/ui/toast";
 
 export const generatePDF = async (
   element: HTMLElement,
-  toastNotification: (props: Toast) => void
+  toastNotification: (props: ToastProps) => void
 ): Promise<void> => {
   try {
     toastNotification({

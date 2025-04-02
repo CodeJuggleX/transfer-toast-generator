@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useGenerateReceipt } from "../hooks/useGenerateReceipt";
 import ElcartLogo from "../components/ElcartLogo";
 import StatusBadge from "../components/StatusBadge";
@@ -32,6 +32,7 @@ const formatRecipient = (recipient: string) => {
 };
 
 const Index = () => {
+  const receiptContainerRef = useRef<HTMLDivElement>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [showForm, setShowForm] = useState(true);
   const { toast } = useToast();
@@ -59,42 +60,63 @@ const Index = () => {
   };
 
   const handleDownloadPDF = () => {
-    const element = document.getElementById("receipt-container");
+    const element = receiptContainerRef.current;
     if (!element) return;
 
-    html2canvas(element, { 
-      scale: 3,
-      backgroundColor: "#000000",
-      useCORS: true,
-      logging: false,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
-    }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = pdfWidth - 20; // 10mm margins on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Center the receipt on the page
-      const x = 10; // 10mm from left edge
-      const y = (pdfHeight - imgHeight) / 2 > 10 ? (pdfHeight - imgHeight) / 2 : 10;
+    const generatePDF = async () => {
+      try {
+        toast({
+          title: "Создание PDF",
+          description: "Пожалуйста, подождите...",
+        });
+        
+        const canvas = await html2canvas(element, { 
+          scale: 3,
+          backgroundColor: "#000000",
+          useCORS: true,
+          logging: false,
+          windowWidth: element.scrollWidth,
+          windowHeight: element.scrollHeight,
+          onclone: (document, element) => {
+            element.style.height = 'auto';
+            element.style.overflow = 'visible';
+          }
+        });
+        
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+        });
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgWidth = pdfWidth - 20; // 10mm margins on each side
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        const x = 10; // 10mm from left edge
+        const y = (pdfHeight - imgHeight) / 2 > 10 ? (pdfHeight - imgHeight) / 2 : 10;
 
-      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-      pdf.save("Элкарт_чек.pdf");
+        pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        pdf.save("Элкарт_чек.pdf");
 
-      toast({
-        title: "Успешно",
-        description: "Чек успешно сохранен в формате PDF",
-      });
-    });
+        toast({
+          title: "Успешно",
+          description: "Чек успешно сохранен в формате PDF",
+        });
+      } catch (error) {
+        console.error("PDF generation error:", error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось создать PDF",
+          variant: "destructive",
+        });
+      }
+    };
+
+    generatePDF();
   };
 
   if (isPending) {
@@ -128,7 +150,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center p-4">
       <PrintButton />
-      <div id="receipt-container" className="max-w-md w-full flex flex-col bg-black p-4 rounded-lg">
+      <div 
+        id="receipt-container" 
+        ref={receiptContainerRef} 
+        className="max-w-md w-full flex flex-col bg-black p-4 rounded-lg"
+      >
         <ElcartLogo />
         <div className="text-white text-center text-xl font-medium mb-6">
           Чек №{receipt.id}
